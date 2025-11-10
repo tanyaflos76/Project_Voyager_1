@@ -1,8 +1,10 @@
 class Voyager:
     def __init__(self):
         # Начальные параметры Вояджера-1
-        self.initial_mass = ...
-        self.initial_position = [...]
+        self.dry_mass = ...
+        self.initial_fuel = ...
+        self.current_fuel = self.initial_fuel
+        self.total_initial_mass = self.dry_mass + self.initial_fuel
 
     def current_mass(mission_time, initial_mass, initial_fuel, thrust_percent=100):
         dry_mass = initial_mass - initial_fuel
@@ -14,4 +16,6 @@ class Voyager:
         return total_mass
 
     def get_position_at_time(self, time_elapsed):
+        ...
+    def current_a(self):
         ...
