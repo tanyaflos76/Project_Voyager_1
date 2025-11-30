@@ -5,6 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7faf86e7-dfa2-4fc6-bec3-990fa2755066" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/physical_model/calc.py" beforeDir="false" afterPath="$PROJECT_DIR$/physical_model/calc.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/physical_model/objects.py" beforeDir="false" afterPath="$PROJECT_DIR$/physical_model/objects.py" afterDir="false" />
     </list>
@@ -36,7 +37,7 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;implement__first__formulas&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/User/Documents/GitHub/Project_Voyager_1&quot;
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/User/PycharmProjects/pythonProjectShkolkovo&quot;
   }
 }</component>
   <component name="SharedIndexes">

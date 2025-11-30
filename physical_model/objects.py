@@ -17,5 +17,4 @@ class Voyager:
 
     def get_position_at_time(self, time_elapsed):
         ...
-    def current_a(self):
-        ...
+

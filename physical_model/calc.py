@@ -1,8 +1,12 @@
 import numpy as np
 
 
-def thrust_force(m, P_spec):
-    return m * P_spec
+def current_a(m, T, F_d, g):
+    return (T - F_d - m * g) / m
+
+
+def thrust_force(v_is, dm, dt):
+    return v_is * dm / dt
 
 
 def drag_force(Cf, S, rho, v):  # Аэродинамическое сопротивление
@@ -32,11 +36,12 @@ def hohmann_impulses(m, v1, v2):  # Импульсы на начало и кон
     return p1, p2
 
 
-def tsiolkovsky_many(I, dry_mass, m_stages):  # Для ногоступенчатой ракеты
+def tsiolkovsky_many(I, dry_mass, m_stages):  # Для многоступенчатой ракеты
     v = 0
     n = len(I)
     for i in range(n):
         sum1 = sum(m_stages[i:])
         sum2 = sum(m_stages[i + 1:])
-        v += I[i] * np.log((dry_mass + sum1) / (dry_mass + m_stages[i] + sum2))
+        v += I[i] * np.log((dry_mass + sum1) /
+                           (dry_mass + m_stages[i] + sum2))
     return v
