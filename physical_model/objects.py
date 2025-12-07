@@ -1,20 +1,19 @@
 class Voyager:
-    def __init__(self):
+    def __init__(self, dry_mass, initial_fuel_mass, cf, v_is):
         # Начальные параметры Вояджера-1
-        self.dry_mass = ...
-        self.initial_fuel = ...
-        self.current_fuel = self.initial_fuel
-        self.total_initial_mass = self.dry_mass + self.initial_fuel
+        self.dry_mass = dry_mass
+        self.current_fuel = initial_fuel_mass
+        self.v_is = v_is
+        self.cf = cf
 
-    def current_mass(mission_time, initial_mass, initial_fuel, thrust_percent=100):
-        dry_mass = initial_mass - initial_fuel
-        thrust_level = thrust_percent / 100
-        fuel_consumption_rate = ...  # по какой формуле считаем?
-        fuel_used = min(fuel_consumption_rate * mission_time, initial_fuel)
-        current_fuel = initial_fuel - fuel_used
-        total_mass = dry_mass + current_fuel
-        return total_mass
+        self.h = 0
+        self.v = 0
+
+    @property
+    def current_mass(self):
+        return self.dry_mass + self.current_fuel
+
+
 
     def get_position_at_time(self, time_elapsed):
         ...
-

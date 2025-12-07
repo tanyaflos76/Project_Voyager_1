@@ -1,8 +1,12 @@
 import numpy as np
 
 
-def current_a(m, T, F_d, g):  # Из уравнения движения
-    return (T - F_d - m * g) / m
+def current_a(m, t, f_d, g):  # Из уравнения движения
+    return (t - f_d - m * g) / m
+
+
+def fuel_consumption_rate():  # Расход топлива
+    ...
 
 
 def impuls_p(v_is, g):  # Удельный импульс
@@ -13,8 +17,8 @@ def thrust_force(v_is, dm, dt):  # Тяга двигателей
     return v_is * dm / dt
 
 
-def drag_force(Cf, S, ro, v):  # Аэродинамическое сопротивление
-    return Cf * S * (ro * v ** 2 / 2)
+def drag_force(cf, s, ro, v):  # Аэродинамическое сопротивление
+    return cf * s * (ro * v ** 2 / 2)
 
 
 def current_g_h(h, r0=6378137, g0=9.80665):  # Изменение g(h)
@@ -25,16 +29,16 @@ def thrust_at_height(fuel_cons, v_is, s, p_exit, p_atm):  # Изменение T
     return fuel_cons * v_is + s * (p_exit - p_atm)
 
 
-def total_force(F_thrust, F_drag, m, g):
-    return F_thrust - F_drag - m * g
+def total_force(f_thrust, f_drag, m, g):
+    return f_thrust - f_drag - m * g
 
 
-def first_cosmic_velocity(g, R):  # Первая космическая скорость
-    return np.sqrt(g * R)
+def first_cosmic_velocity(g, r):  # Первая космическая скорость
+    return np.sqrt(g * r)
 
 
-def second_cosmic_velocity(V1):  # Вторая космическая скорость
-    return np.sqrt(2) * V1
+def second_cosmic_velocity(v1):  # Вторая космическая скорость
+    return np.sqrt(2) * v1
 
 
 def hohmann_transfer_velocity(v1, v2):  # Гомановская траектория
