@@ -9,8 +9,8 @@ def drag_force(cf, s, ro, v):  # Аэродинамическое сопроти
     return cf * s * (ro * v ** 2 / 2)
 
 
-def current_g_h(h, r0=6378137, g0=9.80665):  # Изменение g(h)
-    return g0 * ((r0 / (r0 + h)) ** 2)
+def current_g_h(h, g=6.67 * 10 ** (-11), m=5.29 * 10 ** 22, r=600000):
+    return g * m / ((r + h) ** 2)
 
 
 def thrust_at_height(fuel_cons, v_is, s, p_exit, p_atm):  # Изменение T(h)
@@ -109,21 +109,18 @@ def simulation(voyager, dt, total_time):
     for step in range(1, steps + 1):
 
         if step * dt <= 91:
-            g = 9.8
-            t = voyager.step0_mint + voyager.step1_mint
-            d_force = drag_force(voyager.cf, voyager.s_surf, find_ro(heights[-1]), speeds[-1])
-            a1 = (t - d_force - voyager.total_mass * g) / voyager.total_mass
+            g = current_g_h(heights[-1])
+            t = voyager.step1_mint
+            a1 = (t - voyager.total_mass * g) / voyager.total_mass
             v1 = find_v(speeds[-1], a_s[-1], dt)
             height = find_h(heights[-1], v1, a_s[-1], dt)
-            voyager.total_mass -= ((dt * (voyager.step0_fuel_mass / voyager.step0_time_to_work)) + dt * (
-                    voyager.step1_fuel_mass / voyager.step1_time_to_work))
+            voyager.total_mass -= dt * (voyager.step1_fuel_mass / voyager.step1_time_to_work)
             a_s.append(a1)
             heights.append(height)
             speeds.append(v1)
             times.append(dt * step)
-            print(dt * step, a1, t)
         elif step * dt <= 191:
-            g = 9.8
+            g = current_g_h(heights[-1])
             a1 = (-voyager.total_mass * g) / voyager.total_mass
             v1 = find_v(speeds[-1], a_s[-1], dt)
             height = find_h(heights[-1], v1, a_s[-1], dt)
@@ -131,17 +128,14 @@ def simulation(voyager, dt, total_time):
             heights.append(height)
             speeds.append(v1)
             times.append(dt * step)
-            print(dt * step, a1, height, v1)
 
         elif step * dt <= 212:
-            g = 9.8
-            t = voyager.step0_mint + voyager.step1_mint
-            d_force = drag_force(voyager.cf, voyager.s_surf, find_ro(heights[-1]), speeds[-1])
-            a1 = (t - d_force - voyager.total_mass * g) / voyager.total_mass
+            g = current_g_h(heights[-1])
+            t = voyager.step1_mint
+            a1 = (t - voyager.total_mass * g) / voyager.total_mass
             v1 = find_v(speeds[-1], a_s[-1], dt)
             height = find_h(heights[-1], 0.5 * v1, 0.5 * a_s[-1], dt)
-            voyager.total_mass -= ((dt * (voyager.step0_fuel_mass / voyager.step0_time_to_work)) + dt * (
-                    voyager.step1_fuel_mass / voyager.step1_time_to_work))
+            voyager.total_mass -= dt * (voyager.step1_fuel_mass / voyager.step1_time_to_work)
             a_s.append(a1)
             heights.append(height)
             speeds.append(v1)
@@ -149,19 +143,14 @@ def simulation(voyager, dt, total_time):
 
 
         elif step * dt <= 246:
-            if heights[-1] < 100000:
-                g = 9.8
-            else:
-                g = 9
+            g = current_g_h(heights[-1])
             t = voyager.step2_mint
-            d_force = drag_force(voyager.cf, voyager.s_surf, find_ro(heights[-1]), speeds[-1])
             if f == 0:
-                voyager.total_mass -= (
-                        voyager.step0_mass + voyager.step1_mass - voyager.step0_fuel_mass - voyager.step1_fuel_mass)
+                voyager.total_mass -= (voyager.step1_mass - voyager.step1_fuel_mass)
                 a1 = 40
                 f = 1
             else:
-                a1 = (t - d_force - voyager.total_mass * g) / voyager.total_mass
+                a1 = (t - voyager.total_mass * g) / voyager.total_mass
 
             v1 = find_v(speeds[-1], a_s[-1], dt)
             voyager.total_mass -= (dt * (voyager.step2_fuel_mass / voyager.step2_time_to_work))
@@ -171,5 +160,5 @@ def simulation(voyager, dt, total_time):
             heights.append(height)
             speeds.append(v1)
             times.append(dt * step)
-            print(dt * step, d_force, voyager.total_mass)
+            print(dt * step, voyager.total_mass, v1)
     return times, speeds, heights, a_s
