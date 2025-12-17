@@ -1,6 +1,3 @@
-import numpy as np
-
-
 class Voyager:
     def __init__(self, total_mass, step0, step1, step2, step3, step4, s_nozzle, s_surf, cf):
         # Начальные параметры Вояджера-1
@@ -15,9 +12,6 @@ class Voyager:
         self.s_surf = s_surf
 
         self.cf = cf
-
-        self.h = 0
-        self.v = 0
 
     @property
     def current_mass(self):

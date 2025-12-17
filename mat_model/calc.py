@@ -1,7 +1,5 @@
 import numpy as np
 
-from mat_model.simulation import fuel_consamp
-
 
 def v_is(imp, g):  # Удельный импульс
     return imp * g
@@ -12,7 +10,7 @@ def drag_force(cf, s, ro, v):  # Аэродинамическое сопроти
 
 
 def current_g_h(h, r0=6378137, g0=9.80665):  # Изменение g(h)
-    return g0 * (r0 / (r0 + h)) ** 2
+    return g0 * ((r0 / (r0 + h)) ** 2)
 
 
 def thrust_at_height(fuel_cons, v_is, s, p_exit, p_atm):  # Изменение T(h)
@@ -58,7 +56,7 @@ def distance(a, b):
 
 
 def find_v(v0, aver_a, dt):
-    return v0 + aver_a * dt / 2
+    return v0 + aver_a * dt
 
 
 def find_h(h0, aver_v, aver_a, dt):
@@ -81,25 +79,22 @@ def find_p_atm(h_meters):
 
 
 def find_ro(h_meters):
-    if h_meters <= 11000:  # 0-11 км (тропосфера)
-        # rho = rho0 * (T0/T)^(g/(R*L) + 1)
-        # Упрощенно: rho0 = 1.225, H = 8500 м
+    if h_meters <= 11000:
         return 1.225 * np.exp(-h_meters / 8500)
 
-    elif h_meters <= 25000:  # 11-25 км (стратосфера)
-        # Плотность на 11 км: ~0.364 кг/м³
+    elif h_meters <= 25000:
         return 0.364 * np.exp(-(h_meters - 11000) / 6340)
 
-    elif h_meters <= 47000:  # 25-47 км
+    elif h_meters <= 47000:
         return 0.041 * np.exp(-(h_meters - 25000) / 8000)
 
-    elif h_meters <= 86000:  # 47-86 км
+    elif h_meters <= 86000:
         return 0.0011 * np.exp(-(h_meters - 47000) / 10000)
 
-    elif h_meters <= 150000:  # 86-150 км
+    elif h_meters <= 150000:
         return 1.2e-7 * np.exp(-(h_meters - 86000) / 20000)
 
-    else:  # 150+ км (экзосфера)
+    else:
         return 1.2e-10 * np.exp(-(h_meters - 150000) / 50000)
 
 
@@ -107,86 +102,74 @@ def simulation(voyager, dt, total_time):
     times = [0]
     speeds = [0]
     heights = [0]
-    acceleration = 0
-    t = 0
-    engine_on = True
-    # # Итерации, на которых перестают работать ступени:
-    # iter_step0_off = iter_step1_off = voyager.step0_time_to_work // dt + 1
-    # iter_step2_off = voyager.step2_time_to_work // dt + 1 + iter_step1_off
-    # iter_step3_off = voyager.step3_time_to_work // dt + 1 + iter_step2_off
-    # iter_step4_off = voyager.step4_time_to_work // dt + 1 + iter_step3_off
+    a_s = [0]
+    f = 0
 
-    steps = total_time / dt
+    steps = int(total_time // dt)
     for step in range(1, steps + 1):
-        if (voyager.step1_fuel_mass is not None) and (voyager.step1_fuel_mass <= 0):
-            # сразу перестают работать и ускорители, и первая ступень
-            voyager.total_mass -= (
-                    (voyager.step0_mass - voyager.step0_fuel_mass) - (voyager.step1_mass - voyager.step1_fuel_mass))
-            fuel_consump = (voyager.step2_fuel_mass / voyager.step2_time_to_work)
-            v_i = v_is(voyager.step2_impuls, current_g_h(heights[-1]))
-            p_e = ...
-            voyager.step1_fuel_mass = None
-        elif (voyager.step2_fuel_mass is not None) and (voyager.step2_fuel_mass <= 0):
-            voyager.total_mass -= (voyager.step2_mass - voyager.step2_fuel_mass)
-            fuel_consump = (voyager.step3_fuel_mass / voyager.step3_time_to_work)
-            v_i = v_is(voyager.step3_impuls, current_g_h(heights[-1]))
-            p_e = ...
-        elif (voyager.step3_fuel_mass is not None) and (voyager.step3_fuel_mass <= 0):
-            voyager.total_mass -= (voyager.step3_mass - voyager.step3_fuel_mass)
-            fuel_consump = (voyager.step4_fuel_mass / voyager.step4_time_to_work)
-            v_i = v_is(voyager.step4_impuls, current_g_h(heights[-1]))
-            p_e = ...
-        elif (voyager.step4_fuel_mass is not None) and (voyager.step4_fuel_mass <= 0):
-            voyager.total_mass -= (voyager.step4_mass - voyager.step4_fuel_mass)
-        else:
-            engine_on = False  # Топливо закончилось
 
-        if voyager.step1_fuel_mass > 0:
-            # Пока работают ускорители
-            t1 = 2 * thrust_at_height(dt * (voyager.step0_fuel_mass / voyager.step0_time_to_work),
-                                      v_is(voyager.step0_impuls, current_g_h(heights[-1])), voyager.s_nozzle, p_e,
-                                      find_p_atm(heights[-1]))
-            t2 = thrust_at_height(dt * (voyager.step1_fuel_mass / voyager.step1_time_to_work),
-                                  v_is(voyager.step1_impuls, current_g_h(heights[-1])), voyager.s_nozzle, p_e,
-                                  find_p_atm(heights[-1]))
-            t = t1 + t2
-        elif voyager.step4_fuel_mass > 0:
-            # Пока работают какие-нибудь двигатели
-            t = thrust_at_height(dt * fuel_consump, v_i, voyager.s_nozzle, p_e, find_p_atm(heights[-1]))
-
-
-        if heights[-1] < 100000:
-            # до 100000м высоты: A = (T - Fs - mg) / m
+        if step * dt <= 91:
+            g = 9.8
+            t = voyager.step0_mint + voyager.step1_mint
             d_force = drag_force(voyager.cf, voyager.s_surf, find_ro(heights[-1]), speeds[-1])
-            a1 = (t - d_force - voyager.total_mass * current_g_h(heights[-1])) / voyager.total_mass
+            a1 = (t - d_force - voyager.total_mass * g) / voyager.total_mass
+            v1 = find_v(speeds[-1], a_s[-1], dt)
+            height = find_h(heights[-1], v1, a_s[-1], dt)
+            voyager.total_mass -= ((dt * (voyager.step0_fuel_mass / voyager.step0_time_to_work)) + dt * (
+                    voyager.step1_fuel_mass / voyager.step1_time_to_work))
+            a_s.append(a1)
+            heights.append(height)
+            speeds.append(v1)
+            times.append(dt * step)
+            print(dt * step, a1, t)
+        elif step * dt <= 191:
+            g = 9.8
+            a1 = (-voyager.total_mass * g) / voyager.total_mass
+            v1 = find_v(speeds[-1], a_s[-1], dt)
+            height = find_h(heights[-1], v1, a_s[-1], dt)
+            a_s.append(a1)
+            heights.append(height)
+            speeds.append(v1)
+            times.append(dt * step)
+            print(dt * step, a1, height, v1)
 
-        elif heights[-1] < 300000:
-            # до 300000м высоты: A = (T - mg) / m
-            a1 = (t - voyager.total_mass * current_g_h(heights[-1])) / voyager.total_mass
+        elif step * dt <= 212:
+            g = 9.8
+            t = voyager.step0_mint + voyager.step1_mint
+            d_force = drag_force(voyager.cf, voyager.s_surf, find_ro(heights[-1]), speeds[-1])
+            a1 = (t - d_force - voyager.total_mass * g) / voyager.total_mass
+            v1 = find_v(speeds[-1], a_s[-1], dt)
+            height = find_h(heights[-1], 0.5 * v1, 0.5 * a_s[-1], dt)
+            voyager.total_mass -= ((dt * (voyager.step0_fuel_mass / voyager.step0_time_to_work)) + dt * (
+                    voyager.step1_fuel_mass / voyager.step1_time_to_work))
+            a_s.append(a1)
+            heights.append(height)
+            speeds.append(v1)
+            times.append(dt * step)
 
-        elif heights[-1] < 8.416 * 10 ** 7:
-            # до 8.416*10**7м высоты: A = (T - Fs - mg) / m
-            a1 = (t - d_force - voyager.total_mass * current_g_h(heights[-1])) / voyager.total_mass
 
-        elif ...:  # кончится время работы движка:
-            pass
+        elif step * dt <= 246:
+            if heights[-1] < 100000:
+                g = 9.8
+            else:
+                g = 9
+            t = voyager.step2_mint
+            d_force = drag_force(voyager.cf, voyager.s_surf, find_ro(heights[-1]), speeds[-1])
+            if f == 0:
+                voyager.total_mass -= (
+                        voyager.step0_mass + voyager.step1_mass - voyager.step0_fuel_mass - voyager.step1_fuel_mass)
+                a1 = 40
+                f = 1
+            else:
+                a1 = (t - d_force - voyager.total_mass * g) / voyager.total_mass
 
-        v1 = find_v(speeds[-1], (a1 + acceleration) / 2, dt)
-        height = find_h(heights[-1], (v1 + speeds[-1]) / 2, (a1 + acceleration) / 2, dt)
-        voyager.total_mass -= (dt * fuel_consump)
-        acceleration = a1
-        heights.append(height)
-        speeds.append(v1)
-        times.append(dt * step)
-    return times, speeds, heights
+            v1 = find_v(speeds[-1], a_s[-1], dt)
+            voyager.total_mass -= (dt * (voyager.step2_fuel_mass / voyager.step2_time_to_work))
 
-# получение конечной массы, скорости, ускорения, высоты после секунды полета
-
-# t = 2 * thrust_at_height(5 * fuel_consamp, v_i, s_sopla, p_e, p_atm)
-# d_force = drag_force(cf, total_s, ro, v0)
-# a5 = a(t, d_force, total_m, g)
-# v5 = v(v0, (a5 + a0) / 2, dt)
-# height5 = h(0, (v5 + v0) / 2, (a5 + a0) / 2, dt)
-# m5 = total_m - dt * fuel_consamp
-# print(
-#     f"Скорость конечная:{v5}, высота:{height5}, масса конечная:{m5}, ускорение конечное:{a5}, тяга :{t}, скорость истечения:{v_i}")
+            height = find_h(heights[-1], 0.2 * v1, 0.2 * a_s[-1], dt)
+            a_s.append(a1)
+            heights.append(height)
+            speeds.append(v1)
+            times.append(dt * step)
+            print(dt * step, d_force, voyager.total_mass)
+    return times, speeds, heights, a_s
