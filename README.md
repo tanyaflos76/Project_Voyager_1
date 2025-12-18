@@ -4,3 +4,7 @@
     <li>Никонова Т.С. - Программист математической модели</li>
     <li>Кравцов М.Д. - Программист KSP, математик</li>
     <li>Доценко И.Д. - Физик, математик</li></ul></p>
+<h3>Ссылка на документацию:</h3>
+<h3>https://drive.google.com/drive/folders/1qfya_vuCTyb3EwjXCpxuoYhAB61K0nrG?usp=drive_link</h3>
+<h3>Ссылка на видеозащиту:</h3>
+<h3>https://rutube.ru/video/9cf5e71778e1bf6033d3523e4175ee97/</h3>
